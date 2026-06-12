@@ -7,6 +7,3 @@ Splitsy is a lightweight mobile app to track and split group expenses. It helps 
 - Create expenses with payer and participants
 - Compute per-person balances and settle-up suggestions
 - Local persistence for offline usage
-
-## License
-This repository does not include a license file. Add one (e.g., MIT) if you intend to open-source the project.
