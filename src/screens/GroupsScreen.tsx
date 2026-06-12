@@ -1,10 +1,10 @@
 import { useCallback, useState } from 'react';
-import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Alert, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { RootStackParamList } from '../navigation/types';
-import { getGroups } from '../db/repository';
+import { deleteGroup, getGroups } from '../db/repository';
 import { Group } from '../types';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Groups'>;
@@ -17,6 +17,20 @@ export default function GroupsScreen({ navigation }: Props) {
       setGroups(getGroups());
     }, [])
   );
+
+  const confirmDeleteGroup = (group: Group) => {
+    Alert.alert('Delete group', `Delete "${group.name}" and all its expenses?`, [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: () => {
+          deleteGroup(group.id);
+          setGroups(getGroups());
+        },
+      },
+    ]);
+  };
 
   return (
     <View style={styles.container}>
@@ -35,6 +49,7 @@ export default function GroupsScreen({ navigation }: Props) {
             <Pressable
               style={styles.card}
               onPress={() => navigation.navigate('GroupDetail', { groupId: item.id })}
+              onLongPress={() => confirmDeleteGroup(item)}
             >
               <View style={styles.cardIcon}>
                 <Ionicons name="wallet-outline" size={24} color="#4f6df5" />
