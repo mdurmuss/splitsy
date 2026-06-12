@@ -1,0 +1,2 @@
+# splitsy
+Split application
