@@ -1,2 +1,12 @@
-# splitsy
-Split application
+# Splitsy
+
+Splitsy is a lightweight mobile app to track and split group expenses. It helps groups create shared budgets, add expenses, manage members, and compute who owes whom.
+
+## Features
+- Create groups and add members
+- Create expenses with payer and participants
+- Compute per-person balances and settle-up suggestions
+- Local persistence for offline usage
+
+## License
+This repository does not include a license file. Add one (e.g., MIT) if you intend to open-source the project.
