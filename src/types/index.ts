@@ -25,6 +25,8 @@ export interface Expense {
   amount: number;
   paidByMemberId: string;
   splitType: SplitType;
+  category: string;
+  icon: string | null;
   date: number;
   shares: ExpenseShare[];
 }

@@ -27,6 +27,8 @@ export function initDatabase() {
       amount REAL NOT NULL,
       paidByMemberId TEXT NOT NULL,
       splitType TEXT NOT NULL,
+      category TEXT NOT NULL DEFAULT 'general',
+      icon TEXT,
       date INTEGER NOT NULL,
       FOREIGN KEY (groupId) REFERENCES groups(id) ON DELETE CASCADE
     );
@@ -39,6 +41,14 @@ export function initDatabase() {
       FOREIGN KEY (expenseId) REFERENCES expenses(id) ON DELETE CASCADE
     );
   `);
+
+  const columns = db.getAllSync<{ name: string }>("PRAGMA table_info(expenses)");
+  if (!columns.some((c) => c.name === 'category')) {
+    db.execSync("ALTER TABLE expenses ADD COLUMN category TEXT NOT NULL DEFAULT 'general'");
+  }
+  if (!columns.some((c) => c.name === 'icon')) {
+    db.execSync('ALTER TABLE expenses ADD COLUMN icon TEXT');
+  }
 }
 
 export default db;

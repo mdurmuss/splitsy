@@ -64,6 +64,8 @@ export function addExpense(
   amount: number,
   paidByMemberId: string,
   splitType: SplitType,
+  category: string,
+  icon: string | null,
   shares: ExpenseShare[]
 ): Expense {
   const expense: Expense = {
@@ -73,13 +75,15 @@ export function addExpense(
     amount,
     paidByMemberId,
     splitType,
+    category,
+    icon,
     date: Date.now(),
     shares,
   };
 
   db.runSync(
-    'INSERT INTO expenses (id, groupId, description, amount, paidByMemberId, splitType, date) VALUES (?, ?, ?, ?, ?, ?, ?)',
-    [expense.id, expense.groupId, expense.description, expense.amount, expense.paidByMemberId, expense.splitType, expense.date]
+    'INSERT INTO expenses (id, groupId, description, amount, paidByMemberId, splitType, category, icon, date) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+    [expense.id, expense.groupId, expense.description, expense.amount, expense.paidByMemberId, expense.splitType, expense.category, expense.icon, expense.date]
   );
 
   for (const share of shares) {
@@ -125,11 +129,13 @@ export function updateExpense(
   amount: number,
   paidByMemberId: string,
   splitType: SplitType,
+  category: string,
+  icon: string | null,
   shares: ExpenseShare[]
 ): void {
   db.runSync(
-    'UPDATE expenses SET description = ?, amount = ?, paidByMemberId = ?, splitType = ? WHERE id = ?',
-    [description, amount, paidByMemberId, splitType, expenseId]
+    'UPDATE expenses SET description = ?, amount = ?, paidByMemberId = ?, splitType = ?, category = ?, icon = ? WHERE id = ?',
+    [description, amount, paidByMemberId, splitType, category, icon, expenseId]
   );
 
   db.runSync('DELETE FROM expense_shares WHERE expenseId = ?', [expenseId]);

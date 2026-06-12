@@ -7,6 +7,7 @@ import { RootStackParamList } from '../navigation/types';
 import { deleteExpense, getExpenses, getGroup, getMembers } from '../db/repository';
 import { calculateBalances, calculateSettlements } from '../utils/balances';
 import { Balance, Expense, Group, Member, Settlement } from '../types';
+import { CATEGORY_ICONS, ExpenseCategory } from '../utils/categories';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'GroupDetail'>;
 type Tab = 'expenses' | 'balances';
@@ -89,7 +90,15 @@ export default function GroupDetailScreen({ navigation, route }: Props) {
                 onLongPress={() => confirmDeleteExpense(item)}
               >
                 <View style={styles.expenseIcon}>
-                  <Ionicons name="receipt-outline" size={20} color="#4f6df5" />
+                  {item.icon ? (
+                    <Text style={styles.expenseIconEmoji}>{item.icon}</Text>
+                  ) : (
+                    <Ionicons
+                      name={CATEGORY_ICONS[item.category as ExpenseCategory] ?? CATEGORY_ICONS.general}
+                      size={20}
+                      color="#4f6df5"
+                    />
+                  )}
                 </View>
                 <View style={styles.expenseContent}>
                   <Text style={styles.expenseTitle}>{item.description}</Text>
@@ -181,6 +190,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginRight: 12,
   },
+  expenseIconEmoji: { fontSize: 18 },
   expenseContent: { flex: 1 },
   expenseTitle: { fontSize: 15, fontWeight: '600', color: '#1a1a2e' },
   expenseSubtitle: { fontSize: 13, color: '#8a8a9e', marginTop: 2 },

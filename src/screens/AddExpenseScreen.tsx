@@ -1,10 +1,12 @@
 import { useLayoutEffect, useMemo, useState } from 'react';
-import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { Ionicons } from '@expo/vector-icons';
 import { RootStackParamList } from '../navigation/types';
 import { addExpense, getExpense, getGroup, getMembers, updateExpense } from '../db/repository';
 import { equalSplit, round2 } from '../utils/balances';
 import { SplitType } from '../types';
+import { CATEGORY_ICONS, EMOJI_OPTIONS, ExpenseCategory } from '../utils/categories';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'AddExpense'>;
 
@@ -18,6 +20,11 @@ export default function AddExpenseScreen({ navigation, route }: Props) {
   const [amount, setAmount] = useState(existingExpense ? String(existingExpense.amount) : '');
   const [paidByMemberId, setPaidByMemberId] = useState(existingExpense?.paidByMemberId ?? members[0]?.id ?? '');
   const [splitType, setSplitType] = useState<SplitType>(existingExpense?.splitType ?? 'equal');
+  const [category] = useState<ExpenseCategory>(
+    (existingExpense?.category as ExpenseCategory) ?? 'general'
+  );
+  const [icon, setIcon] = useState<string | null>(existingExpense?.icon ?? null);
+  const [emojiPickerVisible, setEmojiPickerVisible] = useState(false);
   const [includedMemberIds, setIncludedMemberIds] = useState<string[]>(
     existingExpense ? existingExpense.shares.map((s) => s.memberId) : members.map((m) => m.id)
   );
@@ -63,9 +70,9 @@ export default function AddExpenseScreen({ navigation, route }: Props) {
     }
 
     if (existingExpense) {
-      updateExpense(existingExpense.id, description.trim(), round2(numericAmount), paidByMemberId, splitType, shares);
+      updateExpense(existingExpense.id, description.trim(), round2(numericAmount), paidByMemberId, splitType, category, icon, shares);
     } else {
-      addExpense(groupId, description.trim(), round2(numericAmount), paidByMemberId, splitType, shares);
+      addExpense(groupId, description.trim(), round2(numericAmount), paidByMemberId, splitType, category, icon, shares);
     }
     navigation.goBack();
   };
@@ -74,12 +81,54 @@ export default function AddExpenseScreen({ navigation, route }: Props) {
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView style={styles.container} contentContainerStyle={styles.content}>
         <Text style={styles.label}>Description</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="e.g. Dinner"
-          value={description}
-          onChangeText={setDescription}
-        />
+        <View style={styles.descriptionRow}>
+          <Pressable style={styles.emojiButton} onPress={() => setEmojiPickerVisible(true)}>
+            {icon ? (
+              <Text style={styles.emojiButtonText}>{icon}</Text>
+            ) : (
+              <Ionicons name={CATEGORY_ICONS[category]} size={22} color="#4f6df5" />
+            )}
+          </Pressable>
+          <TextInput
+            style={[styles.input, styles.descriptionInput]}
+            placeholder="e.g. Dinner"
+            value={description}
+            onChangeText={setDescription}
+          />
+        </View>
+
+        <Modal visible={emojiPickerVisible} transparent animationType="fade" onRequestClose={() => setEmojiPickerVisible(false)}>
+          <Pressable style={styles.modalOverlay} onPress={() => setEmojiPickerVisible(false)}>
+            <Pressable style={styles.modalContent} onPress={(e) => e.stopPropagation()}>
+              <Text style={styles.modalTitle}>Choose an icon</Text>
+              <View style={styles.emojiGrid}>
+                {icon !== null && (
+                  <Pressable
+                    style={styles.emojiOption}
+                    onPress={() => {
+                      setIcon(null);
+                      setEmojiPickerVisible(false);
+                    }}
+                  >
+                    <Ionicons name="close-circle-outline" size={28} color="#8a8a9e" />
+                  </Pressable>
+                )}
+                {EMOJI_OPTIONS.map((emoji) => (
+                  <Pressable
+                    key={emoji}
+                    style={styles.emojiOption}
+                    onPress={() => {
+                      setIcon(emoji);
+                      setEmojiPickerVisible(false);
+                    }}
+                  >
+                    <Text style={styles.emojiOptionText}>{emoji}</Text>
+                  </Pressable>
+                ))}
+              </View>
+            </Pressable>
+          </Pressable>
+        </Modal>
 
         <Text style={styles.label}>Amount ({group?.currency})</Text>
         <TextInput
@@ -178,6 +227,41 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#1a1a2e',
   },
+  descriptionRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  emojiButton: {
+    width: 48,
+    height: 48,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#e0e0e8',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  emojiButtonText: { fontSize: 24 },
+  descriptionInput: { flex: 1 },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 20,
+    width: '85%',
+  },
+  modalTitle: { fontSize: 16, fontWeight: '700', color: '#1a1a2e', marginBottom: 16 },
+  emojiGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  emojiOption: {
+    width: 48,
+    height: 48,
+    borderRadius: 10,
+    backgroundColor: '#f5f6fa',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  emojiOptionText: { fontSize: 24 },
   chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   chip: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, backgroundColor: '#f0f1f7' },
   chipActive: { backgroundColor: '#4f6df5' },
