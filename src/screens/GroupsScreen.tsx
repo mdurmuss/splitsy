@@ -52,7 +52,11 @@ export default function GroupsScreen({ navigation }: Props) {
               onLongPress={() => confirmDeleteGroup(item)}
             >
               <View style={styles.cardIcon}>
-                <Ionicons name="wallet-outline" size={24} color="#4f6df5" />
+                {item.icon ? (
+                  <Text style={styles.cardIconEmoji}>{item.icon}</Text>
+                ) : (
+                  <Ionicons name="wallet-outline" size={24} color="#4f6df5" />
+                )}
               </View>
               <View style={styles.cardContent}>
                 <Text style={styles.cardTitle}>{item.name}</Text>
@@ -91,6 +95,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginRight: 12,
   },
+  cardIconEmoji: { fontSize: 22 },
   cardContent: { flex: 1 },
   cardTitle: { fontSize: 16, fontWeight: '600', color: '#1a1a2e' },
   cardSubtitle: { fontSize: 13, color: '#8a8a9e', marginTop: 2 },

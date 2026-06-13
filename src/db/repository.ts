@@ -7,16 +7,17 @@ function generateId(): string {
 
 // --- Groups ---
 
-export function createGroup(name: string, currency: string): Group {
+export function createGroup(name: string, currency: string, icon: string | null = null): Group {
   const group: Group = {
     id: generateId(),
     name,
     currency,
+    icon,
     createdAt: Date.now(),
   };
   db.runSync(
-    'INSERT INTO groups (id, name, currency, createdAt) VALUES (?, ?, ?, ?)',
-    [group.id, group.name, group.currency, group.createdAt]
+    'INSERT INTO groups (id, name, currency, icon, createdAt) VALUES (?, ?, ?, ?, ?)',
+    [group.id, group.name, group.currency, group.icon, group.createdAt]
   );
   return group;
 }
