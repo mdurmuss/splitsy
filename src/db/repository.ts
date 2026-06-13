@@ -66,7 +66,8 @@ export function addExpense(
   splitType: SplitType,
   category: string,
   icon: string | null,
-  shares: ExpenseShare[]
+  shares: ExpenseShare[],
+  date: number = Date.now()
 ): Expense {
   const expense: Expense = {
     id: generateId(),
@@ -77,7 +78,7 @@ export function addExpense(
     splitType,
     category,
     icon,
-    date: Date.now(),
+    date,
     shares,
   };
 
@@ -131,11 +132,12 @@ export function updateExpense(
   splitType: SplitType,
   category: string,
   icon: string | null,
-  shares: ExpenseShare[]
+  shares: ExpenseShare[],
+  date: number
 ): void {
   db.runSync(
-    'UPDATE expenses SET description = ?, amount = ?, paidByMemberId = ?, splitType = ?, category = ?, icon = ? WHERE id = ?',
-    [description, amount, paidByMemberId, splitType, category, icon, expenseId]
+    'UPDATE expenses SET description = ?, amount = ?, paidByMemberId = ?, splitType = ?, category = ?, icon = ?, date = ? WHERE id = ?',
+    [description, amount, paidByMemberId, splitType, category, icon, date, expenseId]
   );
 
   db.runSync('DELETE FROM expense_shares WHERE expenseId = ?', [expenseId]);

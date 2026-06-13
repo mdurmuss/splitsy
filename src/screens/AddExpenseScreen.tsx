@@ -1,5 +1,6 @@
 import { useLayoutEffect, useMemo, useState } from 'react';
 import { KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import { RootStackParamList } from '../navigation/types';
@@ -25,6 +26,8 @@ export default function AddExpenseScreen({ navigation, route }: Props) {
   );
   const [icon, setIcon] = useState<string | null>(existingExpense?.icon ?? null);
   const [emojiPickerVisible, setEmojiPickerVisible] = useState(false);
+  const [date, setDate] = useState<Date>(existingExpense ? new Date(existingExpense.date) : new Date());
+  const [datePickerVisible, setDatePickerVisible] = useState(false);
   const [includedMemberIds, setIncludedMemberIds] = useState<string[]>(
     existingExpense ? existingExpense.shares.map((s) => s.memberId) : members.map((m) => m.id)
   );
@@ -70,9 +73,9 @@ export default function AddExpenseScreen({ navigation, route }: Props) {
     }
 
     if (existingExpense) {
-      updateExpense(existingExpense.id, description.trim(), round2(numericAmount), paidByMemberId, splitType, category, icon, shares);
+      updateExpense(existingExpense.id, description.trim(), round2(numericAmount), paidByMemberId, splitType, category, icon, shares, date.getTime());
     } else {
-      addExpense(groupId, description.trim(), round2(numericAmount), paidByMemberId, splitType, category, icon, shares);
+      addExpense(groupId, description.trim(), round2(numericAmount), paidByMemberId, splitType, category, icon, shares, date.getTime());
     }
     navigation.goBack();
   };
@@ -138,6 +141,51 @@ export default function AddExpenseScreen({ navigation, route }: Props) {
           value={amount}
           onChangeText={setAmount}
         />
+
+        <Text style={styles.label}>Date</Text>
+        {Platform.OS === 'ios' ? (
+          <View style={styles.chipRow}>
+            <View style={styles.dateChip}>
+              <Ionicons name="calendar-outline" size={16} color="#4f6df5" />
+              <DateTimePicker
+                value={date}
+                mode="date"
+                display="compact"
+                maximumDate={new Date()}
+                onChange={(_event, selected) => {
+                  if (selected) {
+                    setDate(selected);
+                  }
+                }}
+              />
+            </View>
+          </View>
+        ) : (
+          <>
+            <View style={styles.chipRow}>
+              <Pressable style={styles.dateChip} onPress={() => setDatePickerVisible(true)}>
+                <Ionicons name="calendar-outline" size={16} color="#4f6df5" />
+                <Text style={styles.dateChipText}>
+                  {date.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
+                </Text>
+              </Pressable>
+            </View>
+
+            {datePickerVisible && (
+              <DateTimePicker
+                value={date}
+                mode="date"
+                maximumDate={new Date()}
+                onChange={(_event, selected) => {
+                  setDatePickerVisible(false);
+                  if (selected) {
+                    setDate(selected);
+                  }
+                }}
+              />
+            )}
+          </>
+        )}
 
         <Text style={styles.label}>Paid by</Text>
         <View style={styles.chipRow}>
@@ -263,6 +311,16 @@ const styles = StyleSheet.create({
   },
   emojiOptionText: { fontSize: 24 },
   chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  dateChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    backgroundColor: '#f0f1f7',
+  },
+  dateChipText: { color: '#1a1a2e', fontWeight: '600' },
   chip: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, backgroundColor: '#f0f1f7' },
   chipActive: { backgroundColor: '#4f6df5' },
   chipText: { color: '#1a1a2e', fontWeight: '600' },

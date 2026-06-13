@@ -1,5 +1,5 @@
-import { useCallback, useLayoutEffect, useState } from 'react';
-import { Alert, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useCallback, useLayoutEffect, useMemo, useState } from 'react';
+import { Alert, FlatList, SectionList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
@@ -11,6 +11,26 @@ import { CATEGORY_ICONS, ExpenseCategory } from '../utils/categories';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'GroupDetail'>;
 type Tab = 'expenses' | 'balances';
+
+function formatSectionDate(date: Date): string {
+  const today = new Date();
+  const yesterday = new Date();
+  yesterday.setDate(today.getDate() - 1);
+
+  const isSameDay = (a: Date, b: Date) =>
+    a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+
+  if (isSameDay(date, today)) return 'Today';
+  if (isSameDay(date, yesterday)) return 'Yesterday';
+
+  const sameYear = date.getFullYear() === today.getFullYear();
+  return date.toLocaleDateString(undefined, {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: sameYear ? undefined : 'numeric',
+  });
+}
 
 export default function GroupDetailScreen({ navigation, route }: Props) {
   const { groupId } = route.params;
@@ -60,6 +80,22 @@ export default function GroupDetailScreen({ navigation, route }: Props) {
   const balances: Balance[] = calculateBalances(members, expenses);
   const settlements: Settlement[] = calculateSettlements(balances);
 
+  const expenseSections = useMemo(() => {
+    const groups = new Map<string, { date: Date; data: Expense[] }>();
+    for (const expense of expenses) {
+      const d = new Date(expense.date);
+      const key = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+      if (!groups.has(key)) {
+        groups.set(key, { date: d, data: [] });
+      }
+      groups.get(key)!.data.push(expense);
+    }
+    return Array.from(groups.values()).map(({ date, data }) => ({
+      title: formatSectionDate(date),
+      data,
+    }));
+  }, [expenses]);
+
   return (
     <View style={styles.container}>
       <View style={styles.tabBar}>
@@ -79,10 +115,13 @@ export default function GroupDetailScreen({ navigation, route }: Props) {
             <Text style={styles.emptySubtitle}>Tap + to add your first expense</Text>
           </View>
         ) : (
-          <FlatList
-            data={expenses}
+          <SectionList
+            sections={expenseSections}
             keyExtractor={(item) => item.id}
             contentContainerStyle={styles.list}
+            renderSectionHeader={({ section }) => (
+              <Text style={styles.sectionHeader}>{section.title}</Text>
+            )}
             renderItem={({ item }) => (
               <Pressable
                 style={styles.expenseCard}
@@ -173,6 +212,14 @@ const styles = StyleSheet.create({
   tabText: { color: '#8a8a9e', fontWeight: '600' },
   tabTextActive: { color: '#4f6df5' },
   list: { padding: 16 },
+  sectionHeader: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#8a8a9e',
+    textTransform: 'uppercase',
+    marginTop: 12,
+    marginBottom: 8,
+  },
   expenseCard: {
     flexDirection: 'row',
     alignItems: 'center',

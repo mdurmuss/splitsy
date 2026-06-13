@@ -10,6 +10,7 @@ export function initDatabase() {
       id TEXT PRIMARY KEY NOT NULL,
       name TEXT NOT NULL,
       currency TEXT NOT NULL,
+      icon TEXT,
       createdAt INTEGER NOT NULL
     );
 
@@ -48,6 +49,11 @@ export function initDatabase() {
   }
   if (!columns.some((c) => c.name === 'icon')) {
     db.execSync('ALTER TABLE expenses ADD COLUMN icon TEXT');
+  }
+
+  const groupColumns = db.getAllSync<{ name: string }>("PRAGMA table_info(groups)");
+  if (!groupColumns.some((c) => c.name === 'icon')) {
+    db.execSync('ALTER TABLE groups ADD COLUMN icon TEXT');
   }
 }
 
