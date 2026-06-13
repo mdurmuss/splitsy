@@ -1,4 +1,5 @@
 export type RootStackParamList = {
+  Onboarding: undefined;
   Groups: undefined;
   GroupDetail: { groupId: string };
   CreateGroup: undefined;
